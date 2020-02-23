@@ -10,10 +10,11 @@ public class Rectangle {
     public Point upperLeft;
     public Point upperRight;
     public int area;
+    public int valor;
 
     static LinkedList<Rectangle> list = new LinkedList<>();
 
-    public Rectangle(int id, int x1, int y1, int x2, int y2) {
+    public Rectangle(int id, int x1, int y1, int x2, int y2,int valor) {
         int bottomLeftX;
         int upperRightX;
         int bottomLeftY;
@@ -38,12 +39,8 @@ public class Rectangle {
         this.upperRight = new Point(upperRightX, upperRightY);
         this.upperLeft = new Point(bottomLeftX, upperRightY);
         this.area = (upperRightX - bottomLeftX) * (upperRightY - bottomLeftY);
+        this.valor = valor;
         list.add(this);
-    }
-
-    @Override
-    public String toString() {
-        return "Rectangle{" + "bottomLeft=" + bottomLeft + ", upperRight=" + upperRight + ", area=" + area;
     }
 
     public static Rectangle[] getRectangles(LinkedList<Rectangle> list) {

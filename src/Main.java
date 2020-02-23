@@ -3,7 +3,9 @@ import figura.Rectangle;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Scanner;
 
 public class Main extends JFrame {
 
@@ -12,10 +14,17 @@ public class Main extends JFrame {
     static int areaUsed;
 
     public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
         Main.originalData = getData();
-        Main.maxArea();
+        System.out.println("1) Para maximizar Area.\n 2) Para maximizar Ganancias");
+        int option = in.nextInt();
+        if (option == 1) {
+            Main.maxArea();
+        } else {
+
+        }
         Main DrawWindow = new Main();
-        DrawWindow.setSize(700, 550);
+        DrawWindow.setSize(700, 600);
         DrawWindow.setResizable(true);
         DrawWindow.setLocation(200, 50);
         DrawWindow.setTitle("Paint");
@@ -36,7 +45,7 @@ public class Main extends JFrame {
         for (int i = 0; i < y; i += 50) {
             g.drawLine(0, i, x, i);
         }
-        for (int i = 0; i < 550; i += 50) {
+        for (int i = 0; i < 600; i += 50) {
             g.drawLine(i, 0, i, y);
         }
 
@@ -61,7 +70,7 @@ public class Main extends JFrame {
         }
         g.drawString("Solución al", 550, 250);
         g.drawString("máximar por área. ", 550, 265);
-        g.drawString("Area Total="+String.valueOf(areaUsed), 550, 280);
+        g.drawString("Area Total=" + String.valueOf(areaUsed), 550, 280);
     }
 
     static void maxArea() {
@@ -109,7 +118,7 @@ public class Main extends JFrame {
                 for (Rectangle item : matriz[i][j]) {
                     value += item.area;
                 }
-                if(value> maxValue){
+                if (value > maxValue) {
                     maxValue = value;
                     indexI = i;
                     indexJ = j;
@@ -121,13 +130,55 @@ public class Main extends JFrame {
     }
 
     static Rectangle[] getData() {
-        new Rectangle(0, 0, 0, 10, 10);
-        new Rectangle(0, 10, 10, 20, 20);
-        new Rectangle(0, 20, 20, 30, 30);
-        new Rectangle(0, 30, 30, 40, 40);
-        new Rectangle(0, 40, 40, 50, 50);
-        new Rectangle(0, 40, 40, 60, 60);
+        connBD();
         return Rectangle.getRectangles(Rectangle.getList());
     }
 
+    static void connBD() {
+        Connection conn;
+        Statement sentencia;
+        ResultSet resultado;
+        try { // Se carga el driver JDBC-ODBC
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+        } catch (Exception e) {
+            System.out.println("No se pudo cargar el driver JDBC");
+            return;
+        }
+
+        try { // Se establece la conexi�n con la base de datos Oracle Express
+            conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE", "gato", "gato");
+            sentencia = conn.createStatement();
+        } catch (SQLException e) {
+            System.out.println("No hay conexion con la base de datos.");
+            return;
+        }
+        int c = 0;
+        try {
+            resultado = sentencia.executeQuery("SELECT idoferente as id,locales as locals from empire");
+
+            while (resultado.next()) {
+                int id = resultado.getInt("id");
+                Object[] objects = (Object[]) resultado.getArray(2).getArray();
+                for (Object ob : objects) {
+                    oracle.sql.STRUCT item = (oracle.sql.STRUCT) ob;
+                    Object[] items = item.getAttributes();
+                    int[] local = new int[5];
+                    int index = 0;
+                    for (Object item1 : items) {
+                        if (item1 != null) {
+                            java.math.BigDecimal value = (java.math.BigDecimal) item1;
+                            local[index] = value.intValue();
+                            index++;
+                        }
+                    }
+                    if (index != 0) {
+                        new Rectangle(id, local[0], local[1], local[2], local[3], local[4]);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+    }
 }
